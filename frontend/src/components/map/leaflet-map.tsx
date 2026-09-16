@@ -15,22 +15,40 @@ const CATEGORY_COLOR: Record<CpssPoint['category'], string> = {
   KOMUNITAS: '#15803d',
 };
 
-const BASEMAPS = {
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
+const ESRI_ATTRIBUTION = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>';
+
+/**
+ * Basemap Esri dipakai karena tidak memerlukan API key. Basemap CARTO kini
+ * menampilkan watermark "API KEY REQUIRED" tanpa kunci.
+ */
+const BASEMAPS: Record<
+  'terang' | 'minimal' | 'satelit',
+  { url: string; attribution: string; labels?: string }
+> = {
   terang: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    url: `${ESRI}/World_Street_Map/MapServer/tile/{z}/{y}/{x}`,
+    attribution: `${ESRI_ATTRIBUTION} — Esri, HERE, Garmin, OpenStreetMap contributors`,
   },
   minimal: {
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    url: `${ESRI}/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+    labels: `${ESRI}/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}`,
+    attribution: `${ESRI_ATTRIBUTION} — Esri, HERE, Garmin`,
   },
   satelit: {
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',
+    url: `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`,
+    attribution: `${ESRI_ATTRIBUTION} — Esri, Maxar, Earthstar Geographics`,
   },
-} as const;
+};
+
+function createBasemap(key: BasemapKey) {
+  const def = BASEMAPS[key];
+  const layers: L.Layer[] = [
+    L.tileLayer(def.url, { attribution: def.attribution, maxZoom: 19 }),
+  ];
+  if (def.labels) layers.push(L.tileLayer(def.labels, { maxZoom: 19, pane: 'overlayPane' }));
+  return L.layerGroup(layers);
+}
 
 export type BasemapKey = keyof typeof BASEMAPS;
 
@@ -107,7 +125,7 @@ export default function LeafletMap({
 }: LeafletMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const tileRef = useRef<L.TileLayer | null>(null);
+  const tileRef = useRef<L.LayerGroup | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const onSelectRef = useRef(onSelect);
@@ -133,11 +151,7 @@ export default function LeafletMap({
       L.control.zoom({ position: 'bottomright' }).addTo(map);
     }
 
-    tileRef.current = L.tileLayer(BASEMAPS[basemap].url, {
-      attribution: BASEMAPS[basemap].attribution,
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
+    tileRef.current = createBasemap(basemap).addTo(map);
 
     layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
@@ -162,12 +176,7 @@ export default function LeafletMap({
     const map = mapRef.current;
     if (!map) return;
     tileRef.current?.remove();
-    tileRef.current = L.tileLayer(BASEMAPS[basemap].url, {
-      attribution: BASEMAPS[basemap].attribution,
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
-    tileRef.current.bringToBack();
+    tileRef.current = createBasemap(basemap).addTo(map);
   }, [basemap]);
 
   // Sinkronkan marker dengan daftar titik.
@@ -198,9 +207,13 @@ export default function LeafletMap({
     const target = points.find((p) => p.id === selectedId);
     const marker = markersRef.current.get(selectedId);
     if (!target || !Number.isFinite(target.lat) || !Number.isFinite(target.lng)) return;
+    if (!interactive) {
+      map.setView([target.lat, target.lng], 14);
+      return;
+    }
     map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 11), { duration: 0.8 });
     window.setTimeout(() => marker?.openPopup(), 850);
-  }, [selectedId, points]);
+  }, [selectedId, points, interactive]);
 
   return <div ref={containerRef} className={className} role="application" aria-label="Peta titik CPSS Indonesia" />;
 }
