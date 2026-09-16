@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-display: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white text-navy-950 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+  }
+
+  ::selection {
+    @apply bg-brand-600 text-white;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold
+           transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+           focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-[0_10px_24px_-12px_rgba(188,15,31,0.9)]
+           hover:bg-brand-700 hover:shadow-[0_14px_30px_-12px_rgba(188,15,31,0.9)] active:translate-y-px;
+  }
+  .btn-navy {
+    @apply btn bg-navy-900 text-white hover:bg-navy-950 active:translate-y-px;
+  }
+  .btn-outline {
+    @apply btn border border-navy-200 bg-white text-navy-900 hover:border-navy-300 hover:bg-navy-50;
+  }
+  .btn-ghost {
+    @apply btn text-navy-700 hover:bg-navy-50;
+  }
+  .btn-sm {
+    @apply px-3.5 py-2 text-[13px];
+  }
+
+  .card {
+    @apply rounded-2xl border border-navy-100 bg-white shadow-card;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-[13px] font-semibold text-navy-800;
+  }
+  .field {
+    @apply w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-950
+           placeholder:text-navy-300 transition focus:border-brand-500 focus:outline-none
+           focus:ring-4 focus:ring-brand-500/10 disabled:bg-navy-50;
+  }
+  .field-hint {
+    @apply mt-1 text-xs text-navy-400;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide;
+  }
+
+  .link-underline {
+    @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-current
+           after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  .prose-id p {
+    @apply mb-4 leading-relaxed text-navy-700;
+  }
+}
+
+/* --- Leaflet: penyesuaian tampilan agar selaras dengan desain --- */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: #eaf1f9;
+}
+.leaflet-container a {
+  color: #0e2a52;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -20px rgba(7, 26, 54, 0.6);
+  padding: 0;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 0;
+  width: 264px !important;
+}
+.leaflet-popup-tip {
+  box-shadow: none;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.82) !important;
+}
+.leaflet-bar a {
+  border-radius: 8px !important;
+  color: #0e2a52 !important;
+}
+.cpss-marker {
+  background: transparent;
+  border: 0;
+}
+.cpss-cluster {
+  background: transparent;
+  border: 0;
+}
+
+/* Scrollbar halus untuk panel daftar */
+.scroll-slim::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: rgba(14, 42, 82, 0.18);
+  border-radius: 999px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

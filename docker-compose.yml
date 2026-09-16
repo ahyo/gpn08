@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gpn08-db
+    environment:
+      POSTGRES_USER: gpn08
+      POSTGRES_PASSWORD: gpn08
+      POSTGRES_DB: gpn08
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gpn08 -d gpn08"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    container_name: gpn08-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://gpn08:gpn08@db:5432/gpn08
+      SECRET_KEY: ganti-dengan-kunci-acak-di-produksi-0123456789abcdef
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8080
+      SEED_ON_STARTUP: "true"
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+        NEXT_PUBLIC_DEMO_MODE: "false"
+    container_name: gpn08-web
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres-data:
